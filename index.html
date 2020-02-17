@@ -40,8 +40,8 @@
   <div class="wrapper">
 
   	<h1>D3.js Slider Examples</h1>
-
-  	<p><a href="http://github.com/turban/d3.slider">http://github.com/turban/d3.slider</a></p>
+<p><a href="https://github.com/pavel-b-kr12/d3-slider">this fork https://github.com/pavel-b-kr12/d3-slider</a></p>
+  	<p><a href="http://github.com/turban/d3.slider">original http://github.com/turban/d3.slider</a></p>
 
     <h2>Default slider</h2>
     <code>d3.slider()</code>
@@ -69,7 +69,7 @@
     <div id="slider5"></div>
 
     <h2>Slider with custom axis</h2>
-    <code>d3.slider().axis( d3.svg.axis().orient("top").ticks(6) )</code>
+    <code>d3.slider().axis( d3.axis().orient("top").ticks(6) )</code>
     <div id="slider6"></div>
 
     <h2>Slider with min, max and step values</h2>
@@ -85,24 +85,25 @@
     <div id="slider9"></div>
 
     <h2>Slider with dates</h2>
-    <code>d3.slider().scale(d3.time.scale().domain([new Date(1984,1,1), new Date(2014,1,1)])).axis(d3.svg.axis())</code>
+    <code>d3.slider().scale(d3.scaleTime().domain([new Date(1984,1,1), new Date(2014,1,1)])).axis(d3.axis())</code>
     <div id="slider10"></div>
 
     <h2>Slider with snapping to ticks</h2>
-    <code>d3.slider().scale(d3.time.scale().domain([new Date(1984,1,1), new Date(2014,1,1)])).axis( d3.svg.axis() ).snap(true).value(new Date(2000,1,1))</code>
+    <code>d3.slider().scale(d3.scaleTime().domain([new Date(1984,1,1), new Date(2014,1,1)])).axis( d3.axis() ).snap(true).value(new Date(2000,1,1))</code>
     <div id="slider11"></div>
 
     <h2>Slider with ordinal scales (categories)</h2>
-    <code>d3.slider().scale(d3.scale.ordinal().domain(["Gecko", "Webkit", "Blink", "Trident"]).rangePoints([0, 1], 0.5)).axis( d3.svg.axis() ).snap(true).value("Gecko")</code>
+    <code>d3.slider().scale(d3.scale.ordinal().domain(["Gecko", "Webkit", "Blink", "Trident"]).rangePoints([0, 1], 0.5)).axis( d3.axis() ).snap(true).value("Gecko")</code>
     <div id="slider12"></div>
 
   </div>
 
-  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://d3js.org/d3.v5.min.js"></script>
   <script src="d3.slider.js"></script>
   <script>
 
-    d3.select('#slider1').call(d3.slider());
+   ss= d3.slider()
+   d3.select('#slider1').call(ss);
 
     d3.select('#slider2').call(d3.slider().value( [ 10, 25 ] ));
 
@@ -115,10 +116,10 @@
       d3.select('#slider4text').text(value);
     }));
 
-    d3.select('#slider5').call(d3.slider().axis(true));
+    d3.select('#slider5').call(d3.slider().axis(true)); //? true?false
 
-    var axis = d3.svg.axis().orient("top").ticks(4);
-    d3.select('#slider6').call(d3.slider().axis(axis));
+    //var axis = d3.axis().orient("top").ticks(4);
+    d3.select('#slider6').call(d3.slider().axis(true)); //!.axis(axis)
 
     d3.select('#slider7').call(d3.slider().axis(true).min(2000).max(2100).step(5));
 
@@ -126,11 +127,11 @@
 
     d3.select('#slider9').call(d3.slider().value( [10, 30] ).orientation("vertical"));
 
-    d3.select('#slider10').call(d3.slider().scale(d3.time.scale().domain([new Date(1984,1,1), new Date(2014,1,1)])).axis(d3.svg.axis()));
+    d3.select('#slider10').call(d3.slider().scale(d3.scaleTime().domain([new Date(1984,1,1), new Date(2014,1,1)]))     ); //.axis(d3.axis())
 
-    d3.select('#slider11').call(d3.slider().scale(d3.time.scale().domain([new Date(1984,1,1), new Date(2014,1,1)])).axis(d3.svg.axis()).snap(true).value(new Date(2000,1,1)));
+    d3.select('#slider11').call(d3.slider().scale(d3.scaleTime().domain([new Date(1984,1,1), new Date(2014,1,1)]))   );///.axis(d3.axis()).snap(true).value(new Date(2000,1,1))
 
-    essai = d3.slider().scale(d3.scale.ordinal().domain(["Gecko", "Webkit", "Blink", "Trident"]).rangePoints([0, 1], 0.5)).axis(d3.svg.axis()).snap(true).value("Gecko");
+    essai = d3.slider().scale(d3.scalePoint().domain(["Gecko", "Webkit", "Blink", "Trident"]).range([0, 1], 0.5)); //.axis(d3.axis()).snap(true).value("Gecko")
     d3.select('#slider12').call(essai);
 
   </script>

@@ -1,3 +1,23 @@
+//@ https://stackoverflow.com/questions/47844765/d3-rebind-in-d3-v4
+// Copies a variable number of methods from source to target.
+d3.rebind = function(target, source) {
+  var i = 1, n = arguments.length, method;
+  while (++i < n) target[method = arguments[i]] = d3_rebind(target, source, source[method]);
+  return target;
+};
+
+// Method is assumed to be a standard D3 getter-setter:
+// If passed with no arguments, gets the value.
+// If passed with arguments, sets the value and returns the target.
+function d3_rebind(target, source, method) {
+  return function() {
+    var value = method.apply(source, arguments);
+    return value === source ? target : value;
+  };
+}
+//===========================================================================
+
+
 /*
     D3.js Slider
     Inspired by jQuery UI Slider
@@ -53,7 +73,7 @@ return function module() {
 
       // Create scale if not defined by user
       if (!scale) {
-        scale = d3.scale.linear().domain([min, max]);
+        scale = d3.scaleLinear().domain([min, max]);
       }
 
       // Start value
@@ -62,9 +82,10 @@ return function module() {
       // DIV container
       var div = d3.select(this).classed("d3-slider d3-slider-" + orientation, true);
       
-      var drag = d3.behavior.drag();
-      drag.on('dragend', function () {
-        dispatch.slideend(d3.event, value);
+      var drag = d3.drag();
+      drag.on('end', function () {
+								console.log("drag.on end",value);
+        dispatch.on("slideend", function(e) { console.log("slideend",value); d3.event(value)});
       })
 
       // Slider handle
@@ -152,10 +173,9 @@ return function module() {
         // Create axis if not defined by user
         if (typeof axis === "boolean") {
 
-          axis = d3.svg.axis()
+          axis = (orientation === "horizontal") ? d3.axisBottom():d3.axisRight() //@ d3.axisBottom(xRange)
               .ticks(Math.round(sliderLength / 100))
               .tickFormat(tickFormat)
-              .orient((orientation === "horizontal") ? "bottom" :  "right");
 
         }
 
@@ -165,7 +185,8 @@ return function module() {
 
           // Create SVG axis container
         var svg = dom.append("svg")
-            .classed("d3-slider-axis d3-slider-axis-" + axis.orient(), true)
+            // .classed("d3-slider-axis d3-slider-axis-" + axis.orient(), true)
+             .classed("d3-slider-axis d3-slider-axis-" + "left", true)
             .on("click", stopPropagation);
 
         var g = svg.append("g");
@@ -180,12 +201,12 @@ return function module() {
             height: margin
           });
 
-          if (axis.orient() === "top") {
+          // if (axis.orient() === "top") { //!TODO
             svg.style("top", -margin + "px");
             g.attr("transform", "translate(" + margin + "," + margin + ")");
-          } else { // bottom
-            g.attr("transform", "translate(" + margin + ",0)");
-          }
+          // } else { // bottom
+            // g.attr("transform", "translate(" + margin + ",0)");
+          // }
 
         } else { // Vertical
 
@@ -196,12 +217,12 @@ return function module() {
             height: sliderLength + margin * 2
           });
 
-          if (axis.orient() === "left") {
+          // if (axis.orient() === "left") { //!TODO
             svg.style("left", -margin + "px");
             g.attr("transform", "translate(" + margin + "," + margin + ")");
-          } else { // right          
-            g.attr("transform", "translate(" + 0 + "," + margin + ")");
-          }
+          // } else { // right          
+            // g.attr("transform", "translate(" + 0 + "," + margin + ")");
+          // }
 
         }
 
@@ -212,6 +233,9 @@ return function module() {
       function onClickHorizontal() {
         if (toType(value) != "array") {
           var pos = Math.max(0, Math.min(sliderLength, d3.event.offsetX || d3.event.layerX));
+		  console.log(scale.invert ? 
+                      stepValue(scale.invert(pos / sliderLength))
+                    : nearestTick(pos / sliderLength))
           moveHandle(scale.invert ? 
                       stepValue(scale.invert(pos / sliderLength))
                     : nearestTick(pos / sliderLength));
@@ -261,21 +285,30 @@ return function module() {
 
   // Move slider handle on click/drag
   function moveHandle(newValue) {
+	  
     var currentValue = toType(value) == "array"  && value.length == 2 ? value[active - 1]: value,
         oldPos = formatPercent(scale(stepValue(currentValue))),
         newPos = formatPercent(scale(stepValue(newValue))),
         position = (orientation === "horizontal") ? "left" : "bottom";
+		console.log(currentValue, oldPos, newPos)
     if (oldPos !== newPos) {
-
+	  //save newValue
       if (toType(value) == "array" && value.length == 2) {
         value[ active - 1 ] = newValue;
         if (d3.event) {
-          dispatch.slide(d3.event, value );
+          //v3: dispatch.slide(d3.event, value );
+		  dispatch.on("slide", function(e) { d3.event(value)});
+console.log("2",value)
         };
       } else {
+		  value= newValue;
         if (d3.event) {
-          dispatch.slide(d3.event.sourceEvent || d3.event, value = newValue);
+          ////v3: dispatch.slide(d3.event.sourceEvent || d3.event, value = newValue);
+		  //dispatch.on("slide", function(e) { d3.event.sourceEvent(newValue); });
+		  dispatch.on("slide", function(e) { d3.event(newValue)});
+console.log("1",value,newValue)
         };
+
       }
 
       if ( value[ 0 ] >= value[ 1 ] ) return;
@@ -307,6 +340,7 @@ return function module() {
         }
       }
     }
+
   }
 
   // Calculate nearest step value
@@ -338,7 +372,7 @@ return function module() {
     var dist = ticks.map(function(d) {return pos - scale(d);});
     var i = -1,
         index = 0,
-        r = scale.ticks ? scale.range()[1] : scale.rangeExtent()[1];
+        r = scale.ticks ? scale.range()[1] : scale.rangeExtent()[1]; //!fix rangeExtent Returns a two-element array representing the extent of the scale's range, i.e., the smallest and largest values.
     do {
         i++;
         if (Math.abs(dist[i]) < r) {
