@@ -84,8 +84,8 @@ return function module() {
       
       var drag = d3.drag();
       drag.on('end', function () {
-								console.log("drag.on end",value);
-        dispatch.on("slideend", function(e) { console.log("slideend",value); d3.event(value)});
+								//console.log("drag.on end",value);
+        dispatch.on("slideend", function(e) { /*console.log("slideend",value);*/ d3.event(value)});
       })
 
       // Slider handle
@@ -233,9 +233,6 @@ return function module() {
       function onClickHorizontal() {
         if (toType(value) != "array") {
           var pos = Math.max(0, Math.min(sliderLength, d3.event.offsetX || d3.event.layerX));
-		  console.log(scale.invert ? 
-                      stepValue(scale.invert(pos / sliderLength))
-                    : nearestTick(pos / sliderLength))
           moveHandle(scale.invert ? 
                       stepValue(scale.invert(pos / sliderLength))
                     : nearestTick(pos / sliderLength));
@@ -290,7 +287,7 @@ return function module() {
         oldPos = formatPercent(scale(stepValue(currentValue))),
         newPos = formatPercent(scale(stepValue(newValue))),
         position = (orientation === "horizontal") ? "left" : "bottom";
-		console.log(currentValue, oldPos, newPos)
+		//console.log(currentValue, oldPos, newPos)
     if (oldPos !== newPos) {
 	  //save newValue
       if (toType(value) == "array" && value.length == 2) {
@@ -298,7 +295,6 @@ return function module() {
         if (d3.event) {
           //v3: dispatch.slide(d3.event, value );
 		  dispatch.on("slide", function(e) { d3.event(value)});
-console.log("2",value)
         };
       } else {
 		  value= newValue;
@@ -306,7 +302,6 @@ console.log("2",value)
           ////v3: dispatch.slide(d3.event.sourceEvent || d3.event, value = newValue);
 		  //dispatch.on("slide", function(e) { d3.event.sourceEvent(newValue); });
 		  dispatch.on("slide", function(e) { d3.event(newValue)});
-console.log("1",value,newValue)
         };
 
       }
