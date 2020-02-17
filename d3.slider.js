@@ -66,10 +66,13 @@ return function module() {
       handle1,
       handle2 = null,
       divRange,
-      sliderLength;
+      sliderLength,
+      uid = 0;
+
 
   function slider(selection) {
     selection.each(function() {
+      uid++
 
       // Create scale if not defined by user
       if (!scale) {
@@ -84,8 +87,7 @@ return function module() {
       
       var drag = d3.drag();
       drag.on('end', function () {
-								//console.log("drag.on end",value);
-        dispatch.on("slideend", function(e) { /*console.log("slideend",value);*/ d3.event(value)});
+        dispatch.call('slideend', d3.event, value);
       })
 
       // Slider handle
@@ -138,6 +140,10 @@ return function module() {
         
         sliderLength = parseInt(div.style("width"), 10);
 
+        d3.select(window).on('resize.d3-slider' + uid, function() {
+          sliderLength = parseInt(div.style("width"), 10);
+        });
+
       } else { // Vertical
 
         div.on("click", onClickVertical);
@@ -160,6 +166,10 @@ return function module() {
         }
         
         sliderLength = parseInt(div.style("height"), 10);
+
+         d3.select(window).on('resize', function() {
+          sliderLength = parseInt(div.style("height"), 10);
+        });
 
       }
       
@@ -223,11 +233,8 @@ return function module() {
           // } else { // right          
             // g.attr("transform", "translate(" + 0 + "," + margin + ")");
           // }
-
         }
-
         g.call(axis);
-
       }
 
       function onClickHorizontal() {
@@ -275,35 +282,27 @@ return function module() {
       function stopPropagation() {
         d3.event.stopPropagation();
       }
-
     });
-
   }
 
   // Move slider handle on click/drag
   function moveHandle(newValue) {
-	  
     var currentValue = toType(value) == "array"  && value.length == 2 ? value[active - 1]: value,
         oldPos = formatPercent(scale(stepValue(currentValue))),
         newPos = formatPercent(scale(stepValue(newValue))),
         position = (orientation === "horizontal") ? "left" : "bottom";
-		//console.log(currentValue, oldPos, newPos)
+	//console.log(currentValue, oldPos, newPos)
     if (oldPos !== newPos) {
-	  //save newValue
+	//save newValue
       if (toType(value) == "array" && value.length == 2) {
         value[ active - 1 ] = newValue;
         if (d3.event) {
-          //v3: dispatch.slide(d3.event, value );
-		  dispatch.on("slide", function(e) { d3.event(value)});
+          dispatch.call('slide', d3.event, value );
         };
       } else {
-		  value= newValue;
         if (d3.event) {
-          ////v3: dispatch.slide(d3.event.sourceEvent || d3.event, value = newValue);
-		  //dispatch.on("slide", function(e) { d3.event.sourceEvent(newValue); });
-		  dispatch.on("slide", function(e) { d3.event(newValue)});
+          dispatch.call('slide', d3.event.sourceEvent || d3.event, value = newValue);
         };
-
       }
 
       if ( value[ 0 ] >= value[ 1 ] ) return;
@@ -335,12 +334,10 @@ return function module() {
         }
       }
     }
-
   }
 
   // Calculate nearest step value
   function stepValue(val) {
-
     if (val === scale.domain()[0] || val === scale.domain()[1]) {
       return val;
     }
@@ -358,16 +355,15 @@ return function module() {
     };
 
     return alignValue;
-
   }
 
   // Find the nearest tick
   function nearestTick(pos) {
     var ticks = scale.ticks ? scale.ticks() : scale.domain();
     var dist = ticks.map(function(d) {return pos - scale(d);});
-    var i = -1,
-        index = 0,
-        r = scale.ticks ? scale.range()[1] : scale.rangeExtent()[1]; //!fix rangeExtent Returns a two-element array representing the extent of the scale's range, i.e., the smallest and largest values.
+    var i = -1;
+    index = 0;
+    r = scale.ticks ? scale.range()[1] : scale.rangeExtent()[1]; //!fix rangeExtent Returns a two-element array representing the extent of the scale's range, i.e., the smallest and largest values.
     do {
         i++;
         if (Math.abs(dist[i]) < r) {
@@ -387,13 +383,21 @@ return function module() {
   // Getter/setter functions
   slider.min = function(_) {
     if (!arguments.length) return min;
+
     min = _;
+
+    scale = d3.scaleLinear().domain([min, max]);
+
     return slider;
   };
 
   slider.max = function(_) {
     if (!arguments.length) return max;
+
     max = _;
+
+    scale = d3.scaleLinear().domain([min, max]);
+
     return slider;
   };
 
@@ -449,7 +453,21 @@ return function module() {
   };
 
   d3.rebind(slider, dispatch, "on");
+/*
+//other varuants
+1
+  slider.on = function () {
+    let value = dispatch.on.apply(dispatch, arguments);
+    return value === dispatch ? slider : value;
+  }
+2
+  slider.on = function() {
+    var value = dispatch.on.apply(dispatch, arguments);
+    return value === dispatch ? slider : value;
+  }
 
+
+*/
   return slider;
 
 }
