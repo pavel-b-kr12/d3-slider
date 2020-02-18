@@ -87,7 +87,7 @@ return function module() {
       
       var drag = d3.drag();
       drag.on('end', function () {
-        dispatch.call('slideend', d3.event, value);
+        dispatch.on("slideend", function(e) { console.log("slideend",value); d3.event(value)});
       })
 
       // Slider handle
@@ -297,11 +297,11 @@ return function module() {
       if (toType(value) == "array" && value.length == 2) {
         value[ active - 1 ] = newValue;
         if (d3.event) {
-          dispatch.call('slide', d3.event, value );
+          dispatch.on("slide", function(e) { d3.event(value)});
         };
       } else {
         if (d3.event) {
-          dispatch.call('slide', d3.event.sourceEvent || d3.event, value = newValue);
+           dispatch.on("slide", function(e) { d3.event(newValue)});
         };
       }
 
@@ -453,21 +453,17 @@ return function module() {
   };
 
   d3.rebind(slider, dispatch, "on");
-/*
+
 //other varuants
+/*
 1
   slider.on = function () {
     let value = dispatch.on.apply(dispatch, arguments);
     return value === dispatch ? slider : value;
   }
-2
-  slider.on = function() {
-    var value = dispatch.on.apply(dispatch, arguments);
-    return value === dispatch ? slider : value;
-  }
-
-
 */
+
+
   return slider;
 
 }
