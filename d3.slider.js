@@ -300,6 +300,7 @@ return function module() {
           dispatch.on("slide", function(e) { d3.event(value)});
         };
       } else {
+	value= newValue;
         if (d3.event) {
            dispatch.on("slide", function(e) { d3.event(newValue)});
         };
